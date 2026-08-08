@@ -41,7 +41,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://flowtrade.vercel.app",  # update this after Vercel gives you the real URL
+        "https://flowtrade-rho.vercel.app",
     ],
     allow_methods=["*"],
     allow_headers=["*"],

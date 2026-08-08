@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { TrendingUp, Activity, Play, Circle, ChevronRight, ArrowUpRight, History } from "lucide-react";
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 const GOLD = "#FFD700";
 const GOLD_DARK = "#B8960A";
 
@@ -269,7 +269,7 @@ function LiveTab() {
   const [events, setEvents] = useState([]);
   const [live, setLive] = useState(false);
   const [pastRuns, setPastRuns] = useState([]);
-  const [viewingRunId, setViewingRunId] = useState(null); // null = live view, else viewing history
+  const [viewingRunId, setViewingRunId] = useState(null);
 
   const loadPastRuns = useCallback(async () => {
     const res = await fetch(`${API_BASE}/live/runs`);
@@ -292,8 +292,7 @@ function LiveTab() {
   const stopLive = async () => {
     await fetch(`${API_BASE}/live/stop`, { method: "POST" });
     setLive(false);
-    // events intentionally not cleared - stopping freezes the feed
-    loadPastRuns(); // this session is now part of history
+    loadPastRuns();
   };
 
   const viewPastRun = async (runId) => {
@@ -309,11 +308,12 @@ function LiveTab() {
   };
 
   useEffect(() => {
-    const ws = new WebSocket(`ws://127.0.0.1:8000/ws/live`);
+    const wsBase = API_BASE.replace("http", "ws");
+    const ws = new WebSocket(`${wsBase}/ws/live`);
     ws.onopen = () => setConnected(true);
     ws.onclose = () => setConnected(false);
     ws.onmessage = (msg) => {
-      if (viewingRunId !== null) return; // ignore live events while browsing history
+      if (viewingRunId !== null) return;
       const data = JSON.parse(msg.data);
       setEvents((prev) => [data, ...prev].slice(0, 30));
     };
@@ -371,7 +371,7 @@ function LiveTab() {
             <p className="text-xs text-neutral-400 mb-4">
               Requires{" "}
               <code className="font-mono bg-neutral-100 px-1 py-0.5 rounded">simulate_live_feed.py</code> running
-              separately in a terminal.
+              separately.
             </p>
           )}
 
